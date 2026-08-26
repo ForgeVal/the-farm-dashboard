@@ -6,7 +6,6 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { scrapeInstagramProfile } from './scrapers/instagram.js';
 import { broadcastUpdate } from './websocket.js';
 
 // Models
@@ -16,7 +15,7 @@ import Task from './models/Task.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// CRITICAL: Load .env from project root
+// Load .env from project root
 const envPath = path.join(__dirname, '../.env');
 console.log('🔍 Looking for .env at:', envPath);
 dotenv.config({ path: envPath });
@@ -171,17 +170,6 @@ app.delete('/api/admin/tasks/:id', async (req, res) => {
     await Task.findByIdAndDelete(req.params.id);
     broadcastUpdate('task-deleted', { id: req.params.id });
     res.json({ success: true });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Instagram Sync
-app.post('/api/admin/sync', async (req, res) => {
-  try {
-    console.log('📱 Syncing Instagram...');
-    const data = await scrapeInstagramProfile('thefarmstudio');
-    res.json(data);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
