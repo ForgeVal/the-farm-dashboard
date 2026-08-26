@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel - The Farm Dashboard</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      background: #F3EEE7; 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 230px;
+      background: #2E2622;
+      padding: 2rem 1.5rem;
+      color: white;
+      position: fixed;
+      left: 0;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+
+    .sidebar h1 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.5px;
+    }
+
+    .sidebar p {
+      font-size: 0.75rem;
+      opacity: 0.7;
+      margin-bottom: 2rem;
+    }
+
+    .sidebar-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .sidebar-nav button {
+      background: none;
+      border: none;
+      color: white;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: left;
+      font-size: 0.9rem;
+      transition: all 0.3s;
+      opacity: 0.8;
+    }
+
+    .sidebar-nav button:hover {
+      background: rgba(255, 255, 255, 0.1);
+      opacity: 1;
+    }
+
+    .sidebar-nav button.active {
+      background: #6C1E27;
+      opacity: 1;
+      font-weight: 600;
+    }
+
+    /* Main Content */
+    .main {
+      margin-left: 230px;
+      flex: 1;
+      padding: 2rem;
+    }
+
+    .header {
+      background: white;
+      padding: 1.5rem 2rem;
+      border-radius: 16px;
+      margin-bottom: 2rem;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      border: 1px solid #D8CBBE;
+    }
+
+    .header h2 {
+      font-size: 1.5rem;
+      color: #2E2622;
+      margin-bottom: 0.5rem;
+    }
+
+    .header p {
+      color: #999;
+      font-size: 0.9rem;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 2px solid #D8CBBE;
+      margin-bottom: 2rem;
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      padding: 1rem 2rem;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #999;
+      border-bottom: 3px solid transparent;
+      transition: all 0.3s;
+    }
+
+    .tab-btn:hover {
+      color: #6C1E27;
+    }
+
+    .tab-btn.active {
+      color: #6C1E27;
+      border-bottom-color: #6C1E27;
+    }
+
+    /* Sections */
+    .section {
+      display: none;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    /* Cards */
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      border: 1px solid #D8CBBE;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+
+    .card h3 {
+      color: #2E2622;
+      font-size: 1.1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    /* Form */
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      color: #2E2622;
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      padding: 0.75rem;
+      border: 1px solid #D8CBBE;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.9rem;
+      transition: all 0.3s;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: #6C1E27;
+      box-shadow: 0 0 0 3px rgba(108, 30, 39, 0.1);
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+    }
+
+    /* Buttons */
+    .button {
+      background: #6C1E27;
+      color: white;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s;
+      font-size: 0.9rem;
+    }
+
+    .button:hover {
+      background: #8B2538;
+      transform: translateY(-2px);
+    }
+
+    .button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .button.secondary {
+      background: transparent;
+      border: 1px solid #D8CBBE;
+      color: #2E2622;
+    }
+
+    .button.secondary:hover {
+      background: #F3EEE7;
+    }
+
+    .button.danger {
+      background: #c00;
+    }
+
+    .button.danger:hover {
+      background: #a00;
+    }
+
+    /* Items List */
+    .items-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .item {
+      background: #F9F7F3;
+      padding: 1.5rem;
+      border-radius: 12px;
+      border-left: 4px solid #6C1E27;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .item-content h4 {
+      color: #2E2622;
+      font-size: 0.95rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .item-content p {
+      color: #999;
+      font-size: 0.85rem;
+      margin: 0;
+    }
+
+    .item-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .item-actions button {
+      padding: 0.5rem 1rem;
+      border: 1px solid #D8CBBE;
+      background: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.3s;
+    }
+
+    .item-actions button:hover {
+      border-color: #6C1E27;
+      color: #6C1E27;
+    }
+
+    /* Status */
+    .status {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .status.success {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+
+    .status.warning {
+      background: #fff3e0;
+      color: #e65100;
+    }
+
+    .status.error {
+      background: #ffebee;
+      color: #c62828;
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 16px;
+      padding: 2rem;
+      max-width: 600px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .modal-header h3 {
+      color: #2E2622;
+      font-size: 1.25rem;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #999;
+    }
+
+    .close-btn:hover {
+      color: #2E2622;
+    }
+
+    /* Loading */
+    .loading {
+      text-align: center;
+      padding: 2rem;
+      color: #999;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #2E2622;
+      color: white;
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 2000;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    @media (max-width: 1024px) {
+      .sidebar { width: 180px; }
+      .main { margin-left: 180px; }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar { 
+        width: 100%;
+        height: auto;
+        position: relative;
+        padding: 1rem;
+      }
+      .main { margin-left: 0; }
+      .form-row { grid-template-columns: 1fr; }
+      .item { flex-direction: column; align-items: flex-start; gap: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h1>The Farm</h1>
+    <p>Admin Panel</p>
+    <div class="sidebar-nav">
+      <button class="nav-btn active" data-section="metrics">📊 Metrics</button>
+      <button class="nav-btn" data-section="posts">📝 Posts</button>
+      <button class="nav-btn" data-section="tasks">✅ Tasks</button>
+      <button class="nav-btn" data-section="settings">⚙️ Settings</button>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main">
+    <div class="header">
+      <h2>Admin Control Panel</h2>
+      <p>Manage your dashboard content and metrics in real-time</p>
+    </div>
+
+    <!-- METRICS SECTION -->
+    <div class="section active" id="metrics">
+      <div class="card">
+        <h3>Profile Metrics</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Followers</label>
+            <input type="number" id="followers" placeholder="0">
+          </div>
+          <div class="form-group">
+            <label>Engagement Rate</label>
+            <input type="number" id="engagementRate" placeholder="0" step="0.1">
+          </div>
+          <div class="form-group">
+            <label>Reach</label>
+            <input type="number" id="reach" placeholder="0">
+          </div>
+          <div class="form-group">
+            <label>Profile Visits</label>
+            <input type="number" id="profileVisits" placeholder="0">
+          </div>
+        </div>
+        <button class="button" onclick="saveMetrics()">Save Changes</button>
+      </div>
+
+      <div class="card">
+        <h3>Performance Metrics</h3>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Saves</label>
+            <input type="number" id="saves" placeholder="0">
+          </div>
+          <div class="form-group">
+            <label>DMs</label>
+            <input type="number" id="dms" placeholder="0">
+          </div>
+          <div class="form-group">
+            <label>7-Day Reach</label>
+            <input type="number" id="sevenDayReach" placeholder="0">
+          </div>
+        </div>
+        <button class="button" onclick="saveMetrics()">Save Changes</button>
+      </div>
+    </div>
+
+    <!-- POSTS SECTION -->
+    <div class="section" id="posts">
+      <div class="card">
+        <h3>Add New Post</h3>
+        <div class="form-group">
+          <label>Post Caption</label>
+          <textarea id="postCaption" rows="3" placeholder="Write your post caption..."></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Image URL</label>
+            <input type="text" id="postImage" placeholder="https://...">
+          </div>
+          <div class="form-group">
+            <label>Likes</label>
+            <input type="number" id="postLikes" placeholder="0">
+          </div>
+          <div class="form-group">
+            <label>Comments</label>
+            <input type="number" id="postComments" placeholder="0">
+          </div>
+          <div class="form-group">
+            <label>Shares</label>
+            <input type="number" id="postShares" placeholder="0">
+          </div>
+        </div>
+        <button class="button" onclick="addPost()">Add Post</button>
+      </div>
+
+      <div class="card">
+        <h3>Existing Posts</h3>
+        <div class="items-list" id="postsList">
+          <div class="loading">Loading posts...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TASKS SECTION -->
+    <div class="section" id="tasks">
+      <div class="card">
+        <h3>Add New Task</h3>
+        <div class="form-group">
+          <label>Task Name</label>
+          <input type="text" id="taskName" placeholder="e.g., Create content calendar">
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea id="taskDesc" rows="2" placeholder="Task details..."></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Due Date</label>
+            <input type="date" id="taskDue">
+          </div>
+          <div class="form-group">
+            <label>Priority</label>
+            <select id="taskPriority">
+              <option value="low">Low</option>
+              <option value="medium" selected>Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+        </div>
+        <button class="button" onclick="addTask()">Add Task</button>
+      </div>
+
+      <div class="card">
+        <h3>Task List</h3>
+        <div class="items-list" id="tasksList">
+          <div class="loading">Loading tasks...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETTINGS SECTION -->
+    <div class="section" id="settings">
+      <div class="card">
+        <h3>Dashboard Settings</h3>
+        <div class="form-group">
+          <label>Dashboard Title</label>
+          <input type="text" id="dashTitle" placeholder="e.g., The Farm Analytics">
+        </div>
+        <div class="form-group">
+          <label>Dashboard Subtitle</label>
+          <input type="text" id="dashSubtitle" placeholder="e.g., Instagram Performance">
+        </div>
+        <div class="form-group">
+          <label>Account Name</label>
+          <input type="text" id="accountName" placeholder="e.g., @thefarm">
+        </div>
+        <div class="form-group">
+          <label>Bio</label>
+          <textarea id="accountBio" rows="2" placeholder="Your account bio..."></textarea>
+        </div>
+        <button class="button" onclick="saveSettings()">Save Settings</button>
+      </div>
+
+      <div class="card">
+        <h3>General</h3>
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="autoSync" checked>
+            Auto-sync with Instagram
+          </label>
+        </div>
+        <button class="button" onclick="syncNow()">Sync Now</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast" style="display: none;"></div>
+
+  <!-- Edit Modal -->
+  <div class="modal" id="editModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Edit Post</h3>
+        <button class="close-btn" onclick="closeModal()">×</button>
+      </div>
+      <div class="form-group">
+        <label>Caption</label>
+        <textarea id="editCaption" rows="3"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Likes</label>
+          <input type="number" id="editLikes">
+        </div>
+        <div class="form-group">
+          <label>Comments</label>
+          <input type="number" id="editComments">
+        </div>
+        <div class="form-group">
+          <label>Shares</label>
+          <input type="number" id="editShares">
+        </div>
+      </div>
+      <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+        <button class="button secondary" onclick="closeModal()">Cancel</button>
+        <button class="button" onclick="saveEditPost()">Save Changes</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const BASE_URL = window.location.origin;
+    let currentEditId = null;
+    let ws = null;
+    let allPosts = [];
+    let allTasks = [];
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      setupWebSocket();
+      loadData();
+      setupNavigation();
+    });
+
+    // Navigation
+    function setupNavigation() {
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const section = btn.dataset.section;
+          document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+          document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+          document.getElementById(section).classList.add('active');
+          btn.classList.add('active');
+        });
+      });
+    }
+
+    // WebSocket Setup
+    function setupWebSocket() {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      ws = new WebSocket(`${protocol}//${window.location.host}`);
+      
+      ws.onmessage = (event) => {
+        const { type, data } = JSON.parse(event.data);
+        
+        if (type === 'metrics-updated') {
+          loadMetrics();
+        }
+        if (type === 'post-added' || type === 'post-updated' || type === 'post-deleted') {
+          loadPosts();
+        }
+        if (type === 'task-added' || type === 'task-updated' || type === 'task-deleted') {
+          loadTasks();
+        }
+      };
+    }
+
+    // Load Data
+    async function loadData() {
+      loadMetrics();
+      loadPosts();
+      loadTasks();
+    }
+
+    async function loadMetrics() {
+      try {
+        const res = await fetch(`${BASE_URL}/api/admin/metrics`);
+        const data = await res.json();
+        document.getElementById('followers').value = data.followers || '';
+        document.getElementById('engagementRate').value = data.engagementRate || '';
+        document.getElementById('reach').value = data.reach || '';
+        document.getElementById('profileVisits').value = data.profileVisits || '';
+        document.getElementById('saves').value = data.saves || '';
+        document.getElementById('dms').value = data.dms || '';
+        document.getElementById('sevenDayReach').value = data.sevenDayReach || '';
+        document.getElementById('dashTitle').value = data.dashTitle || 'The Farm Analytics';
+        document.getElementById('dashSubtitle').value = data.dashSubtitle || 'Instagram Performance';
+        document.getElementById('accountName').value = data.accountName || '';
+        document.getElementById('accountBio').value = data.accountBio || '';
+      } catch (error) {
+        console.error('Error loading metrics:', error);
+      }
+    }
+
+    async function loadPosts() {
+      try {
+        const res = await fetch(`${BASE_URL}/api/admin/posts`);
+        allPosts = await res.json();
+        renderPosts();
+      } catch (error) {
+        console.error('Error loading posts:', error);
+      }
+    }
+
+    async function loadTasks() {
+      try {
+        const res = await fetch(`${BASE_URL}/api/admin/tasks`);
+        allTasks = await res.json();
+        renderTasks();
+      } catch (error) {
+        console.error('Error loading tasks:', error);
+      }
+    }
+
+    async function saveMetrics() {
+      const data = {
+        followers: parseInt(document.getElementById('followers').value) || 0,
+        engagementRate: parseFloat(document.getElementById('engagementRate').value) || 0,
+        reach: parseInt(document.getElementById('reach').value) || 0,
+        profileVisits: parseInt(document.getElementById('profileVisits').value) || 0,
+        saves: parseInt(document.getElementById('saves').value) || 0,
+        dms: parseInt(document.getElementById('dms').value) || 0,
+        sevenDayReach: parseInt(document.getElementById('sevenDayReach').value) || 0,
+        dashTitle: document.getElementById('dashTitle').value,
+        dashSubtitle: document.getElementById('dashSubtitle').value,
+        accountName: document.getElementById('accountName').value,
+        accountBio: document.getElementById('accountBio').value,
+      };
+
+      try {
+        await fetch(`${BASE_URL}/api/admin/metrics`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        showToast('✓ Metrics saved successfully');
+      } catch (error) {
+        showToast('✗ Error saving metrics');
+        console.error(error);
+      }
+    }
+
+    async function saveSettings() {
+      await saveMetrics();
+    }
+
+    async function addPost() {
+      const data = {
+        caption: document.getElementById('postCaption').value,
+        image: document.getElementById('postImage').value,
+        likes: parseInt(document.getElementById('postLikes').value) || 0,
+        comments: parseInt(document.getElementById('postComments').value) || 0,
+        shares: parseInt(document.getElementById('postShares').value) || 0,
+      };
+
+      if (!data.caption) {
+        showToast('✗ Please enter a caption');
+        return;
+      }
+
+      try {
+        await fetch(`${BASE_URL}/api/admin/posts`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        document.getElementById('postCaption').value = '';
+        document.getElementById('postImage').value = '';
+        document.getElementById('postLikes').value = '';
+        document.getElementById('postComments').value = '';
+        document.getElementById('postShares').value = '';
+        showToast('✓ Post added successfully');
+      } catch (error) {
+        showToast('✗ Error adding post');
+        console.error(error);
+      }
+    }
+
+    async function addTask() {
+      const data = {
+        name: document.getElementById('taskName').value,
+        description: document.getElementById('taskDesc').value,
+        dueDate: document.getElementById('taskDue').value,
+        priority: document.getElementById('taskPriority').value,
+      };
+
+      if (!data.name) {
+        showToast('✗ Please enter a task name');
+        return;
+      }
+
+      try {
+        await fetch(`${BASE_URL}/api/admin/tasks`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        document.getElementById('taskName').value = '';
+        document.getElementById('taskDesc').value = '';
+        document.getElementById('taskDue').value = '';
+        showToast('✓ Task added successfully');
+      } catch (error) {
+        showToast('✗ Error adding task');
+        console.error(error);
+      }
+    }
+
+    function renderPosts() {
+      const list = document.getElementById('postsList');
+      if (allPosts.length === 0) {
+        list.innerHTML = '<div class="loading">No posts yet</div>';
+        return;
+      }
+      list.innerHTML = allPosts.map(post => `
+        <div class="item">
+          <div class="item-content">
+            <h4>${post.caption.substring(0, 50)}...</h4>
+            <p>❤️ ${post.likes} | 💬 ${post.comments} | ↗️ ${post.shares}</p>
+          </div>
+          <div class="item-actions">
+            <button onclick="editPost('${post._id}')">Edit</button>
+            <button onclick="deletePost('${post._id}')">Delete</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderTasks() {
+      const list = document.getElementById('tasksList');
+      if (allTasks.length === 0) {
+        list.innerHTML = '<div class="loading">No tasks yet</div>';
+        return;
+      }
+      list.innerHTML = allTasks.map(task => `
+        <div class="item">
+          <div class="item-content">
+            <h4>${task.name}</h4>
+            <p>${task.description} <span class="status ${task.priority}">${task.priority}</span></p>
+          </div>
+          <div class="item-actions">
+            <button onclick="completeTask('${task._id}')">Complete</button>
+            <button onclick="deleteTask('${task._id}')">Delete</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function editPost(id) {
+      const post = allPosts.find(p => p._id === id);
+      if (!post) return;
+      currentEditId = id;
+      document.getElementById('editCaption').value = post.caption;
+      document.getElementById('editLikes').value = post.likes;
+      document.getElementById('editComments').value = post.comments;
+      document.getElementById('editShares').value = post.shares;
+      document.getElementById('editModal').classList.add('active');
+    }
+
+    async function saveEditPost() {
+      const data = {
+        caption: document.getElementById('editCaption').value,
+        likes: parseInt(document.getElementById('editLikes').value) || 0,
+        comments: parseInt(document.getElementById('editComments').value) || 0,
+        shares: parseInt(document.getElementById('editShares').value) || 0,
+      };
+
+      try {
+        await fetch(`${BASE_URL}/api/admin/posts/${currentEditId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        closeModal();
+        showToast('✓ Post updated successfully');
+      } catch (error) {
+        showToast('✗ Error updating post');
+        console.error(error);
+      }
+    }
+
+    async function deletePost(id) {
+      if (!confirm('Delete this post?')) return;
+      try {
+        await fetch(`${BASE_URL}/api/admin/posts/${id}`, { method: 'DELETE' });
+        showToast('✓ Post deleted');
+      } catch (error) {
+        showToast('✗ Error deleting post');
+        console.error(error);
+      }
+    }
+
+    async function completeTask(id) {
+      try {
+        await fetch(`${BASE_URL}/api/admin/tasks/${id}/complete`, { method: 'POST' });
+        showToast('✓ Task completed');
+      } catch (error) {
+        showToast('✗ Error completing task');
+        console.error(error);
+      }
+    }
+
+    async function deleteTask(id) {
+      if (!confirm('Delete this task?')) return;
+      try {
+        await fetch(`${BASE_URL}/api/admin/tasks/${id}`, { method: 'DELETE' });
+        showToast('✓ Task deleted');
+      } catch (error) {
+        showToast('✗ Error deleting task');
+        console.error(error);
+      }
+    }
+
+    async function syncNow() {
+      try {
+        await fetch(`${BASE_URL}/api/admin/sync`, { method: 'POST' });
+        showToast('✓ Syncing with Instagram...');
+      } catch (error) {
+        showToast('✗ Sync failed');
+        console.error(error);
+      }
+    }
+
+    function closeModal() {
+      document.getElementById('editModal').classList.remove('active');
+      currentEditId = null;
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      toast.textContent = message;
+      toast.style.display = 'block';
+      setTimeout(() => {
+        toast.style.display = 'none';
+      }, 3000);
+    }
+  </script>
+
+</body>
+</html>
